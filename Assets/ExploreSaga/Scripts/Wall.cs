@@ -5,6 +5,7 @@ namespace ExploreSaga
     public class Wall : MonoBehaviour
     {
         [SerializeField] private OneSideScaleDirection oneSideScaleDirection;
+        [SerializeField] private SpriteRenderer sr;
 
         public void ScaleX(float scaleFactorX)
         {
@@ -25,6 +26,12 @@ namespace ExploreSaga
         public void ResetScale()
         {
             transform.localScale = Vector3.one; 
+        }
+
+
+        public void SetVisible(bool isvisible)
+        {
+            sr.enabled = isvisible;
         }
     }
 }

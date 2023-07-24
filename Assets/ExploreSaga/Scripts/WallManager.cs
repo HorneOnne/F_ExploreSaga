@@ -7,6 +7,7 @@ namespace ExploreSaga
     public class WallManager : MonoBehaviour
     {
         public static WallManager Instance { get; private set; }
+        public static event System.Action OnCeateRectSuccessful;
 
         [Header("Walls")]
         [SerializeField] private Wall upperLeft;
@@ -20,15 +21,19 @@ namespace ExploreSaga
 
 
         // Cached
+        [SerializeField] private Vector2 originCenter;
         private float distanceH;
         private float distanceV;
-
+        private float winArea = 500;
+        private float minSizeToggleWall = 25;
+   
 
         #region Properties
         public Transform UpperLeft { get => upperLeft.transform; }
         public Transform UpperRight { get => upperRight.transform; }
         public Transform LowerLeft { get => lowerLeft.transform; }
         public Transform LowerRight { get => lowerRight.transform; }
+        public float Offset { get; set; } = -3f;
         #endregion
 
 
@@ -41,11 +46,15 @@ namespace ExploreSaga
         private void OnEnable()
         {
             SplitLine.OnLineSpreadCompleted += RecreateRect;
+            GamePlayManager.OnWin += MoveRectToCenter;
+            GamePlayManager.OnWin += CreateRect;
         }
 
         private void OnDisable()
         {
             SplitLine.OnLineSpreadCompleted -= RecreateRect;
+            GamePlayManager.OnWin -= MoveRectToCenter;
+            GamePlayManager.OnWin -= CreateRect;
         }
 
 
@@ -73,6 +82,16 @@ namespace ExploreSaga
                 insideBackground = Instantiate(insideBackgroundPrefab);
             insideBackground.transform.position = centerPoint;
             insideBackground.transform.localScale = new Vector3(distanceH, distanceV, 1);
+
+            if (distanceH < minSizeToggleWall || distanceV < minSizeToggleWall)
+                SetWallsVisible(true);
+
+            Debug.Log($"{distanceH}\t{distanceV}");
+            bool canWin = CheckConditionCanWin();
+            if (canWin)
+                GamePlayManager.Instance.ChangeGameState(GamePlayManager.GameState.WIN);
+
+            OnCeateRectSuccessful?.Invoke();
         }
 
 
@@ -115,5 +134,66 @@ namespace ExploreSaga
                     break;
             }
         }
+
+        private bool CheckConditionCanWin()
+        {
+            float rectArea = Utilities.CalculateRectangleArea(upperLeft.transform.position, upperRight.transform.position,
+                    lowerRight.transform.position, lowerLeft.transform.position,Offset);
+            Debug.Log($"Area: {rectArea}");
+            if (rectArea < winArea)
+            {
+                return true;
+            }
+            return false;
+        }
+
+
+        private void SetWallsVisible(bool isVisible)
+        {
+            upperLeft.SetVisible(isVisible);
+            upperRight.SetVisible(isVisible);
+            lowerLeft.SetVisible(isVisible);
+            lowerRight.SetVisible(isVisible);
+
+        }
+
+
+
+        private void Update()
+        {
+            if(Input.GetKeyDown(KeyCode.M))
+            { 
+                MoveRectToCenter();
+                CreateRect();
+            }
+        }
+
+
+        private void MoveRectToCenter()
+        {
+            List<Transform> rect = new List<Transform>();
+            rect.Add(lowerLeft.transform);
+            rect.Add(upperLeft.transform);
+            rect.Add(lowerRight.transform);
+            rect.Add(upperRight.transform);
+
+            // Calculate the current center of the rectangle
+            Vector2 currentCenter = originCenter;
+            foreach (Transform point in rect)
+            {
+                currentCenter += (Vector2)point.position;
+            }
+            currentCenter /= rect.Count;
+
+            // Calculate the offset to move the rectangle to the desired center position
+            Vector2 offset = originCenter - currentCenter;
+
+            // Apply the offset to move all four points to the centered position
+            foreach (Transform point in rect)
+            {
+                point.position += (Vector3)offset;
+            }
+        }
+
     }
 }

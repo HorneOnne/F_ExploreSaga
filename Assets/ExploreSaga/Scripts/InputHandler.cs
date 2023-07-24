@@ -6,6 +6,8 @@ namespace ExploreSaga
     public class InputHandler : MonoBehaviour
     {
         public static InputHandler Instance { get; private set; }
+        public static event System.Action OnInputOutOfRectSize;
+       
 
         [Header("Properties")]
         [SerializeField] private LayerMask wallLayer;
@@ -14,6 +16,16 @@ namespace ExploreSaga
         private SplitManager splitManager;
         private WallManager wallManager;
 
+
+        private void OnEnable()
+        {
+            UISplitLineDrag.OnReleaseUISplitLine += FireSplitLine;
+        }
+
+        private void OnDisable()
+        {
+            UISplitLineDrag.OnReleaseUISplitLine -= FireSplitLine;
+        }
 
         private void Awake()
         {
@@ -27,64 +39,45 @@ namespace ExploreSaga
         }
 
 
-        private void Update()
+        private void FireSplitLine(Vector2 position)
         {
-            if (Input.GetMouseButtonDown(0))
+            
+            if (Utilities.IsPointInsideRectangle(position, wallManager.UpperLeft.position, wallManager.UpperRight.position,
+                wallManager.LowerRight.position, wallManager.LowerLeft.position, WallManager.Instance.Offset))
             {
-                Vector2 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                float offset = -3f;
-                if (Utilities.IsPointInsideRectangle(mousePosition, wallManager.UpperLeft.position, wallManager.UpperRight.position,
-                    wallManager.LowerRight.position, wallManager.LowerLeft.position, offset))
-                {                 
-                    //Debug.Log($"Inside");
+                // Inside 
 
-                    switch(splitManager.splitType)
-                    {
-                        default: break;
-                        case SplitType.Horizontal:
-                            RaycastHit2D leftHit = Physics2D.Raycast(mousePosition, Vector2.left, 100, wallLayer);
-                            RaycastHit2D rightHit = Physics2D.Raycast(mousePosition, Vector2.right, 100, wallLayer);
-                            if(leftHit.collider != null && rightHit.collider != null)
-                            {
-                                Debug.DrawLine(mousePosition, leftHit.point, Color.red, 1f);
-                                Debug.DrawLine(mousePosition, rightHit.point, Color.blue, 1f);                      
-                                splitManager.CreateSplitLine(mousePosition, leftHit.point, rightHit.point);
-                            }
-                            break;
-                        case SplitType.Vertical:
-                            RaycastHit2D upHit = Physics2D.Raycast(mousePosition, Vector2.up, 100, wallLayer);
-                            RaycastHit2D downHit = Physics2D.Raycast(mousePosition, Vector2.down, 100, wallLayer);
-                            if (upHit.collider != null && downHit.collider != null)
-                            {
-                                Debug.DrawLine(mousePosition, upHit.point, Color.red, 1f);
-                                Debug.DrawLine(mousePosition, downHit.point, Color.blue, 1f);
-                                splitManager.CreateSplitLine(mousePosition, upHit.point, downHit.point);
-                            }
-                            break;
-                    }
-                    
-
-                    /*if (leftHit.collider != null)
-                    {
-                        Debug.Log($"Hit wall at {leftHit.point}");
-                        splitManager.CreateSplitLine(mousePosition); 
-                    }*/
-
-        
-                }
-                else
+                switch (splitManager.splitType)
                 {
-                    //Debug.Log("OutSide");
+                    default: break;
+                    case SplitType.Horizontal:
+                        RaycastHit2D leftHit = Physics2D.Raycast(position, Vector2.left, 100, wallLayer);
+                        RaycastHit2D rightHit = Physics2D.Raycast(position, Vector2.right, 100, wallLayer);
+                        if (leftHit.collider != null && rightHit.collider != null)
+                        {
+                            Debug.DrawLine(position, leftHit.point, Color.red, 1f);
+                            Debug.DrawLine(position, rightHit.point, Color.blue, 1f);
+                            splitManager.CreateSplitLine(position, leftHit.point, rightHit.point);
+                        }
+                        break;
+                    case SplitType.Vertical:
+                        RaycastHit2D upHit = Physics2D.Raycast(position, Vector2.up, 100, wallLayer);
+                        RaycastHit2D downHit = Physics2D.Raycast(position, Vector2.down, 100, wallLayer);
+                        if (upHit.collider != null && downHit.collider != null)
+                        {
+                            Debug.DrawLine(position, upHit.point, Color.red, 1f);
+                            Debug.DrawLine(position, downHit.point, Color.blue, 1f);
+                            splitManager.CreateSplitLine(position, upHit.point, downHit.point);
+                        }
+                        break;
                 }
-
-
-                
             }
-        }
-
-
-
-        
+            else
+            {
+                // OutSide
+                OnInputOutOfRectSize?.Invoke();
+            }
+        }        
     }
 }
 

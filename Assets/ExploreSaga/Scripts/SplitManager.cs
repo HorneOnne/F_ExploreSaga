@@ -6,6 +6,8 @@ namespace ExploreSaga
     public class SplitManager : MonoBehaviour
     {
         public static SplitManager Instance { get; private set; }
+        public static event System.Action OnSplitTypeChanged;
+
 
         [Header("References")]
         [SerializeField] private SplitLine horizontalSplitPrefab;
@@ -21,7 +23,20 @@ namespace ExploreSaga
             Instance = this;
         }
 
+        private void OnEnable()
+        {
+            WallManager.OnCeateRectSuccessful += GetRandomSplitType;
+        }
 
+        private void OnDisable()
+        {
+            WallManager.OnCeateRectSuccessful -= GetRandomSplitType;
+        }
+
+        private void Start()
+        {
+            GetRandomSplitType();
+        }
 
         public void CreateSplitLine(Vector2 position, Vector3 hitPointA, Vector3 hitPointB, float timeSpread = 0.3f)
         {
@@ -48,6 +63,12 @@ namespace ExploreSaga
                     }));
                     break;
             }
+        }
+
+        public void GetRandomSplitType()
+        {
+            splitType = Random.Range(0, 2) == 1 ?  SplitType.Horizontal : SplitType.Vertical;
+            OnSplitTypeChanged?.Invoke();
         }
 
 
