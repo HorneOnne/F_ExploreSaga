@@ -33,11 +33,23 @@ TagManager:
   - 
   - 
   - 
+  - Line
   - 
-  - 
-  - 
-  - 
+  - Ball
+  - Wall
   m_SortingLayers:
+  - name: BackgroundUI
+    uniqueID: 2650800241
+    locked: 0
+  - name: Background
+    uniqueID: 4086848489
+    locked: 0
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Object
+    uniqueID: 645806699
+    locked: 0
+  - name: UI
+    uniqueID: 2967295595
     locked: 0
