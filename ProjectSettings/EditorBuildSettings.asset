@@ -8,6 +8,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/ExploreSaga/Scenes/MainMenuScene.unity
     guid: 3fc8acdd13e6c734bafef6554d6fdbcd
+  - enabled: 1
+    path: Assets/ExploreSaga/Scenes/GameplayScene.unity
+    guid: 8a6f0ea939b40fc479a9a72842efdfd1
   m_configObjects:
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: a0849eba74c353145aae3b532905969a, type: 2}
     com.unity.adaptiveperformance.simulator.provider_settings: {fileID: 11400000, guid: f85060af29e12e047bf7deac7c61221e, type: 2}
