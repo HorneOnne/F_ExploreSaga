@@ -40,21 +40,7 @@ namespace ExploreSaga
             DontDestroyOnLoad(this.gameObject);          
         }
 
-        //public Sprite GetLevelIcon(int level)
-        //{
-        //    if(level < 1 || level > levelData.Count)
-        //    {
-        //        level = level % levelData.Count;
-        //    }
-        //    return levelData[level-1].icon;
-        //}
-
-        //public void NextLevel()
-        //{
-        //    currentLevel++;
-        //    if (currentLevel > levelData.Count)
-        //        currentLevel = levelData.Count;
-        //}
+  
 
         public void PreviousLevel()
         {

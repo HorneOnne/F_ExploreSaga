@@ -7,7 +7,9 @@ namespace ExploreSaga
     {
         public static GamePlayManager Instance { get; private set; }
         public static event System.Action OnStateChanged;
+        public static event System.Action OnPlaying;
         public static event System.Action OnWin;
+        public static event System.Action OnGameOver;
 
         public enum GameState
         {
@@ -43,6 +45,9 @@ namespace ExploreSaga
         private void Start()
         {
             currentState = GameState.PLAYING;
+
+            // Reset score
+            GameManager.Instance.ResetScore();
         }
 
      
@@ -59,13 +64,28 @@ namespace ExploreSaga
             {
                 default: break;
                 case GameState.PLAYING:
-
+                    OnPlaying?.Invoke();
                     break;
-                case GameState.WIN:
+                case GameState.WIN:               
+                    GameManager.Instance.ScoreUp();
+                    StartCoroutine(Utilities.WaitAfter(1f, () =>
+                    {
+                        ChangeGameState(GameState.PLAYING);
+                    }));
+                    SoundManager.Instance.PlaySound(SoundType.Win, false);
                     OnWin?.Invoke();
                     break;
                 case GameState.GAMEOVER:
-     
+                    CameraShake.Instance.Shake();
+                    SoundManager.Instance.PlaySound(SoundType.Destroyed, false);
+                    Time.timeScale = 0.0f;
+
+                    StartCoroutine(Utilities.WaitAfterRealtime(1.0f, () =>
+                    {
+                        Time.timeScale = 1.0f;
+                        Loader.Load(Loader.Scene.GameOverScene);
+                        SoundManager.Instance.PlaySound(SoundType.GameOver, false);
+                    }));
                     break;
                 case GameState.PAUSE:
                     break;

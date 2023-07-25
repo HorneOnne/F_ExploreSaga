@@ -12,6 +12,13 @@ namespace ExploreSaga
             callback?.Invoke();
         }
 
+
+        public static IEnumerator WaitAfterRealtime(float time, System.Action callback)
+        {
+            yield return new WaitForSecondsRealtime(time);
+            callback?.Invoke();
+        }
+
         public static Vector2 CalculateRectangleCenter(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4)
         {
             // Calculate the average x and y coordinates of the points
@@ -48,6 +55,21 @@ namespace ExploreSaga
             // Calculate and return the area of the rectangle
             float area = length * width;
             return area;
+        }
+
+        public static Vector2 GetRandomPositionInRectangle(Vector2 pA, Vector2 pB, Vector2 pC, Vector2 pD, float offset)
+        {
+            // Calculate the minimum and maximum x and y coordinates of the rectangle with offset
+            float minX = Mathf.Min(pA.x, pB.x, pC.x, pD.x) + offset;
+            float maxX = Mathf.Max(pA.x, pB.x, pC.x, pD.x) - offset;
+            float minY = Mathf.Min(pA.y, pB.y, pC.y, pD.y) + offset;
+            float maxY = Mathf.Max(pA.y, pB.y, pC.y, pD.y) - offset;
+
+            // Generate random x and y coordinates within the rectangle with offset
+            float randomX = Random.Range(minX, maxX);
+            float randomY = Random.Range(minY, maxY);
+
+            return new Vector2(randomX, randomY);
         }
     }
 }

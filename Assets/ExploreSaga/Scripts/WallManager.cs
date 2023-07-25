@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
-using Unity.VisualScripting;
+using System.Collections;
 using UnityEngine;
+using System.Runtime.CompilerServices;
 
 namespace ExploreSaga
 {
@@ -24,9 +25,15 @@ namespace ExploreSaga
         [SerializeField] private Vector2 originCenter;
         private float distanceH;
         private float distanceV;
-        private float winArea = 500;
+        private float winArea = 650;
         private float minSizeToggleWall = 25;
-   
+
+        private const float MAX_X = 24;
+        private const float MIN_X = -24;
+        private const float MAX_Y = 40;
+        private const float MIN_Y = -40;
+
+
 
         #region Properties
         public Transform UpperLeft { get => upperLeft.transform; }
@@ -40,25 +47,23 @@ namespace ExploreSaga
         private void Awake()
         {
             Instance = this;
-            CreateRect();
+            CreateWalls();
         }
 
         private void OnEnable()
         {
-            SplitLine.OnLineSpreadCompleted += RecreateRect;
-            GamePlayManager.OnWin += MoveRectToCenter;
-            GamePlayManager.OnWin += CreateRect;
+            SplitLine.OnLineSpreadCompleted += RecreateWalls;
+            GamePlayManager.OnWin += SetWinState;
         }
 
         private void OnDisable()
         {
-            SplitLine.OnLineSpreadCompleted -= RecreateRect;
-            GamePlayManager.OnWin -= MoveRectToCenter;
-            GamePlayManager.OnWin -= CreateRect;
+            SplitLine.OnLineSpreadCompleted -= RecreateWalls;
+            GamePlayManager.OnWin -= SetWinState;
         }
 
 
-        private void CreateRect()
+        private void CreateWalls()
         {
             upperLeft.ResetScale();
             upperRight.ResetScale();
@@ -86,34 +91,30 @@ namespace ExploreSaga
             if (distanceH < minSizeToggleWall || distanceV < minSizeToggleWall)
                 SetWallsVisible(true);
 
-            Debug.Log($"{distanceH}\t{distanceV}");
-            bool canWin = CheckConditionCanWin();
-            if (canWin)
-                GamePlayManager.Instance.ChangeGameState(GamePlayManager.GameState.WIN);
 
             OnCeateRectSuccessful?.Invoke();
         }
 
 
-        private void RecreateRect(SplitType splitType, Vector2 hitPointA, Vector2 hitPointB)
+        private void RecreateWalls(SplitType splitType, Vector2 hitPointA, Vector2 hitPointB)
         {
             switch (splitType)
             {
                 default: break;
                 case SplitType.Horizontal:
-                    if(Ball.Instance.transform.position.y < hitPointA.y)
+                    if (Ball.Instance.transform.position.y < hitPointA.y)
                     {
                         //Ball Below Line
                         upperLeft.transform.position = new Vector3(upperLeft.transform.position.x, hitPointA.y, upperLeft.transform.position.z);
                         upperRight.transform.position = new Vector3(upperRight.transform.position.x, hitPointA.y, upperRight.transform.position.z);
-                        CreateRect();
+                        CreateWalls();
                     }
                     else
                     {
                         // Ball Above Line
                         lowerLeft.transform.position = new Vector3(lowerLeft.transform.position.x, hitPointA.y, lowerLeft.transform.position.z);
                         lowerRight.transform.position = new Vector3(lowerRight.transform.position.x, hitPointA.y, lowerRight.transform.position.z);
-                        CreateRect();
+                        CreateWalls();
                     }
                     break;
                 case SplitType.Vertical:
@@ -122,24 +123,32 @@ namespace ExploreSaga
                         //Ball Left Side Line
                         upperRight.transform.position = new Vector3(hitPointA.x, upperRight.transform.position.y, upperRight.transform.position.z);
                         lowerRight.transform.position = new Vector3(hitPointA.x, lowerRight.transform.position.y, lowerRight.transform.position.z);
-                        CreateRect();
+                        CreateWalls();
                     }
                     else
                     {
                         // Ball Right Side Line
                         upperLeft.transform.position = new Vector3(hitPointA.x, upperLeft.transform.position.y, upperLeft.transform.position.z);
                         lowerLeft.transform.position = new Vector3(hitPointA.x, lowerLeft.transform.position.y, lowerLeft.transform.position.z);
-                        CreateRect();
+                        CreateWalls();
                     }
                     break;
             }
+
+            float differential = CalculateDifferential();
+            if (differential < 40)
+            {
+                bool canWin = CheckConditionCanWin();
+                if (canWin)
+                    GamePlayManager.Instance.ChangeGameState(GamePlayManager.GameState.WIN);
+            }
+
         }
 
         private bool CheckConditionCanWin()
         {
             float rectArea = Utilities.CalculateRectangleArea(upperLeft.transform.position, upperRight.transform.position,
-                    lowerRight.transform.position, lowerLeft.transform.position,Offset);
-            Debug.Log($"Area: {rectArea}");
+                    lowerRight.transform.position, lowerLeft.transform.position, Offset);
             if (rectArea < winArea)
             {
                 return true;
@@ -158,42 +167,57 @@ namespace ExploreSaga
         }
 
 
-
-        private void Update()
+        private void SetWinState()
         {
-            if(Input.GetKeyDown(KeyCode.M))
-            { 
-                MoveRectToCenter();
-                CreateRect();
-            }
+            SetWallsVisible(false);
+            MoveWallsToCenter();
+            ScaleWalls();
+            CreateWalls();          
         }
 
-
-        private void MoveRectToCenter()
+        private void MoveWallsToCenter()
         {
-            List<Transform> rect = new List<Transform>();
-            rect.Add(lowerLeft.transform);
-            rect.Add(upperLeft.transform);
-            rect.Add(lowerRight.transform);
-            rect.Add(upperRight.transform);
+            List<Transform> points = new List<Transform>();
+            points.Add(lowerLeft.transform);
+            points.Add(upperLeft.transform);
+            points.Add(lowerRight.transform);
+            points.Add(upperRight.transform);
 
             // Calculate the current center of the rectangle
             Vector2 currentCenter = originCenter;
-            foreach (Transform point in rect)
+            foreach (Transform point in points)
             {
                 currentCenter += (Vector2)point.position;
             }
-            currentCenter /= rect.Count;
+            currentCenter /= points.Count;
 
             // Calculate the offset to move the rectangle to the desired center position
             Vector2 offset = originCenter - currentCenter;
 
             // Apply the offset to move all four points to the centered position
-            foreach (Transform point in rect)
+            foreach (Transform point in points)
             {
                 point.position += (Vector3)offset;
             }
         }
 
+        private void ScaleWalls()
+        {
+            float scaleX = Mathf.Abs(MIN_X - upperLeft.transform.position.x);
+            float scaleY = Mathf.Abs(MIN_Y - upperLeft.transform.position.y);
+            float minValue = scaleX < scaleY ? scaleX : scaleY;
+
+            upperLeft.transform.position += new Vector3(-minValue, minValue, 0f);
+            upperRight.transform.position += new Vector3(minValue, minValue, 0f);
+            lowerLeft.transform.position += new Vector3(-minValue, -minValue, 0f);
+            lowerRight.transform.position += new Vector3(minValue, -minValue, 0f);
+        }
+
+
+        private float CalculateDifferential()
+        {
+
+            return Mathf.Abs(distanceH - distanceV);
+        }
     }
 }

@@ -8,6 +8,7 @@ namespace ExploreSaga
         {
             MainMenuScene,
             GameplayScene,
+            GameOverScene,
         }
 
         private static Scene targetScene;

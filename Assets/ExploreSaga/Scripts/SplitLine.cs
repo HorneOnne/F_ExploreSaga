@@ -13,9 +13,21 @@ namespace ExploreSaga
         [SerializeField] private SpriteRenderer circle;
 
 
+
         // Cached
         Vector3 targetScaleA = Vector3.zero;
         Vector3 targetScaleB = Vector3.zero;
+
+        private void OnEnable()
+        {
+            GamePlayManager.OnGameOver += StopAllCoroutines;
+        }
+
+        private void OnDisable()
+        {
+            GamePlayManager.OnGameOver -= StopAllCoroutines;
+        }
+
         public void Spread(Vector3 hitPointA, Vector3 hitPointB, SplitType splitType, float timeSpread)
         {
       
@@ -47,8 +59,6 @@ namespace ExploreSaga
                     {
                         OnLineSpreadCompleted?.Invoke(splitType, hitPointA, hitPointB);
                     }));
-
-                    Debug.Log($"{distanceToUp}\t{distanceToDown}");
                     break;
             }
         }

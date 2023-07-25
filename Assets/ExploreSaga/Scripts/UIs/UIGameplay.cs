@@ -9,7 +9,7 @@ namespace ExploreSaga
         [Header("Buttons")]
         [SerializeField] private Button backBtn;
         [Space(10)]
-        [SerializeField] private TextMeshProUGUI menuBtn;
+        [SerializeField] private TextMeshProUGUI scoreText;
 
         [Header("Gameplay")]
         [SerializeField] private UISplitLineDrag vDrag;
@@ -19,18 +19,23 @@ namespace ExploreSaga
         private void OnEnable()
         {
             SplitManager.OnSplitTypeChanged += ChangeDragType;
+            GamePlayManager.OnWin += UpdateScoreText;
         }
 
         private void OnDisable()
         {
             SplitManager.OnSplitTypeChanged -= ChangeDragType;
+            GamePlayManager.OnWin -= UpdateScoreText;
         }
 
         private void Start()
         {
+            UpdateScoreText();
+
             backBtn.onClick.AddListener(() =>
             {
                 Loader.Load(Loader.Scene.MainMenuScene);
+                SoundManager.Instance.PlaySound(SoundType.Button, false);
             });
 
         }
@@ -54,6 +59,11 @@ namespace ExploreSaga
                     vDrag.gameObject.SetActive(true);                
                     break;
             }
+        }
+
+        private void UpdateScoreText()
+        {
+            scoreText.text = $"{GameManager.Instance.GetScore()}";
         }
     }
 }
