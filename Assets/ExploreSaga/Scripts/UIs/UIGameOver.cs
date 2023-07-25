@@ -16,14 +16,18 @@ namespace ExploreSaga
 
         private void Start()
         {
+            scoreText.text = GameManager.Instance.GetScore().ToString();
+
             repeatBtn.onClick.AddListener(() =>
             {
-                Loader.Load(Loader.Scene.GameplayScene);
+                SoundManager.Instance.PlaySound(SoundType.Button, false);
+                Loader.Load(Loader.Scene.GameplayScene);               
             });
 
             menuBtn.onClick.AddListener(() =>
             {
-                Loader.Load(Loader.Scene.MainMenuScene);
+                SoundManager.Instance.PlaySound(SoundType.Button, false);
+                Loader.Load(Loader.Scene.MainMenuScene);            
             });
 
         }

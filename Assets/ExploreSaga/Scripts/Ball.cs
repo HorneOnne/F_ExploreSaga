@@ -9,16 +9,34 @@ namespace ExploreSaga
 
         [SerializeField] private LayerMask lineLayer;
         [SerializeField] private Rigidbody2D rb;
+        [SerializeField] private CircleCollider2D circleCollider2D;
         [SerializeField] private float speed;
 
+
+
+        // Cached
+        private WallManager wallManager;
 
         private void Awake()
         {
             Instance = this;
         }
 
+        private void OnEnable()
+        {
+            GamePlayManager.OnWin += SetWinState;
+            GamePlayManager.OnPlaying += SetPlayingState;
+        }
+
+        private void OnDisable()
+        {
+            GamePlayManager.OnWin -= SetWinState;
+            GamePlayManager.OnPlaying -= SetPlayingState;
+        }
+
         private void Start()
         {
+            wallManager = WallManager.Instance;
             Launch();
         }
 
@@ -33,9 +51,35 @@ namespace ExploreSaga
         {
             if ((lineLayer.value & 1 << collision.gameObject.layer) != 0)
             {
-                Debug.Log("Gameover");
                 rb.velocity = Vector2.zero;
+                GamePlayManager.Instance.ChangeGameState(GamePlayManager.GameState.GAMEOVER);
             }
         }
+
+    
+        private void SetEnableCollider(bool isActive)
+        {
+            circleCollider2D.enabled = isActive;
+        }
+        
+        private void SetWinState()
+        {
+            rb.AddForce(rb.velocity * 10f, ForceMode2D.Impulse);
+            SetEnableCollider(false);
+        }
+
+        private void SetPlayingState()
+        {
+            rb.velocity = Vector2.zero;
+          
+            var randomInsideRect = Utilities.GetRandomPositionInRectangle(wallManager.UpperLeft.transform.position, wallManager.UpperRight.transform.position,
+                    wallManager.LowerRight.transform.position, wallManager.LowerLeft.transform.position, -wallManager.Offset);
+              
+            SetEnableCollider(true);
+            transform.position = randomInsideRect;
+
+            Launch();
+        }
+
     }
 }

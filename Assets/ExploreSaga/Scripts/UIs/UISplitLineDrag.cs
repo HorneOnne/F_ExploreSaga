@@ -33,7 +33,7 @@ namespace ExploreSaga
 
         public void OnBeginDrag(PointerEventData eventData)
         {
-
+            SoundManager.Instance.PlaySound(SoundType.DragDrop, false);
         }
 
         public void OnDrag(PointerEventData eventData)
@@ -43,11 +43,9 @@ namespace ExploreSaga
 
         public void OnEndDrag(PointerEventData eventData)
         {
-            Vector3 worldPosition = rectTransform.TransformPoint(rectTransform.pivot);
-            Debug.Log("World Position: " + worldPosition);
+            Vector3 worldPosition = rectTransform.TransformPoint(rectTransform.pivot);           
             OnReleaseUISplitLine?.Invoke(worldPosition);
-
-           
+            SoundManager.Instance.PlaySound(SoundType.DragDrop, false);
         }
 
    
@@ -55,8 +53,5 @@ namespace ExploreSaga
         {
             rectTransform.anchoredPosition = defaultRectPosition;
         }
-
-
-
     }
 }

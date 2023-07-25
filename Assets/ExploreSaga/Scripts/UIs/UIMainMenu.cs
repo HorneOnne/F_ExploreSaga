@@ -16,16 +16,19 @@ namespace ExploreSaga
             gameBtn.onClick.AddListener(() =>
             {
                 Loader.Load(Loader.Scene.GameplayScene);
+                SoundManager.Instance.PlaySound(SoundType.Button, false);            
             });
 
             settingsBtn.onClick.AddListener(() =>
             {
                 UIManager.Instance.CloseAll();
                 UIManager.Instance.DisplaySettingsMenu(true);
+                SoundManager.Instance.PlaySound(SoundType.Button, false);
             });
 
             exitBtn.onClick.AddListener(() =>
             {
+                SoundManager.Instance.PlaySound(SoundType.Button, false);
                 // Call Application.Quit() to exit the game.
                 Application.Quit();
 

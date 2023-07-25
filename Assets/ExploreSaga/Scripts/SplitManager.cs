@@ -26,11 +26,13 @@ namespace ExploreSaga
         private void OnEnable()
         {
             WallManager.OnCeateRectSuccessful += GetRandomSplitType;
+            GamePlayManager.OnGameOver += StopAllCoroutines;
         }
 
         private void OnDisable()
         {
             WallManager.OnCeateRectSuccessful -= GetRandomSplitType;
+            GamePlayManager.OnGameOver -= StopAllCoroutines;
         }
 
         private void Start()
